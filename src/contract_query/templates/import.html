@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block title %}数据导入 - 合同查询系统{% endblock %}
+{% block content %}
+<h1>数据导入</h1>
+
+<div class="stats-cards">
+  <div class="stat-card">
+    <span class="stat-value">{{ inventory.total_files }}</span>
+    <span class="stat-label">raw 目录总文件数</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-value">{{ inventory.indexed_candidates }}</span>
+    <span class="stat-label">可索引候选文件</span>
+  </div>
+</div>
+
+{% if report %}
+<h2>导入报告</h2>
+<table class="detail-table">
+  <tr><td class="label">Dry Run</td><td>{{ report.dry_run }}</td></tr>
+  <tr><td class="label">总行数</td><td>{{ report.total_rows }}</td></tr>
+  <tr><td class="label">导入行数</td><td>{{ report.imported_rows }}</td></tr>
+  <tr><td class="label">匹配 PDF 数</td><td>{{ report.matched_files }}</td></tr>
+  <tr><td class="label">代码一致匹配</td><td>{{ report.code_matched_files }}</td></tr>
+  <tr><td class="label">序号前缀匹配</td><td>{{ report.serial_prefix_matched_files }}</td></tr>
+  <tr><td class="label">未匹配合同行</td><td>{{ report.unmatched_rows }}</td></tr>
+  <tr><td class="label">未匹配 PDF</td><td>{{ report.unmatched_files }}</td></tr>
+</table>
+{% if report.errors %}
+<h3>警告</h3>
+<ul>
+  {% for err in report.errors %}
+  <li>{{ err }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endif %}
+
+<div class="import-actions">
+  <form action="{{ request.url_for('import_excel_endpoint') }}" method="POST" style="display:inline">
+    <input type="hidden" name="dry_run" value="true">
+    <button type="submit" class="btn">Dry Run 预览导入</button>
+  </form>
+  <form action="{{ request.url_for('import_excel_endpoint') }}" method="POST" style="display:inline">
+    <input type="hidden" name="dry_run" value="false">
+    <button type="submit" class="btn btn-primary">执行导入</button>
+  </form>
+  <a href="{{ request.url_for('check_files_endpoint') }}" class="btn">检查文件状态</a>
+</div>
+{% endblock %}

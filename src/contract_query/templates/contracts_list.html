@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block title %}合同列表 - 合同查询系统{% endblock %}
+{% block content %}
+<h1>合同列表</h1>
+
+<form class="search-form search-form-wide" action="{{ request.url_for('contracts') }}" method="GET">
+  <div class="search-row">
+    <input type="text" name="q" class="search-input" placeholder="关键词" value="{{ q }}">
+    <button type="submit" class="btn btn-primary">搜索</button>
+  </div>
+  <div class="filter-row">
+    <select name="year" class="filter-select">
+      <option value="">所有年份</option>
+      {% for y in range(2026, 2020, -1) %}
+      <option value="{{ y }}" {{ 'selected' if year == y|string else '' }}>{{ y }}</option>
+      {% endfor %}
+    </select>
+    <input type="text" name="supplier" class="filter-input" placeholder="供应商" value="{{ supplier }}">
+    <select name="purchase_method" class="filter-select">
+      <option value="">所有采购方式</option>
+      {% for pm in purchase_methods %}
+      <option value="{{ pm }}" {{ 'selected' if purchase_method == pm else '' }}>{{ pm }}</option>
+      {% endfor %}
+    </select>
+    <input type="number" name="min_amount" class="filter-input filter-input-sm" placeholder="最低金额" value="{{ min_amount or '' }}" step="0.01">
+    <span class="filter-sep">-</span>
+    <input type="number" name="max_amount" class="filter-input filter-input-sm" placeholder="最高金额" value="{{ max_amount or '' }}" step="0.01">
+    <span class="filter-sep">万元</span>
+  </div>
+</form>
+
+{% include "_contract_table.html" %}
+{% endblock %}

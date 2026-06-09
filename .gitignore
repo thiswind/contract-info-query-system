@@ -13,6 +13,8 @@
 
 # Local AI workflow
 .claude/
+.gitmodules
+cursor-agent-team/
 
 # Environment and secrets
 .env
@@ -31,6 +33,9 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .venv/
+.deploy-test-venv/
+.deploy-req-venv/
+.deploy-setup-venv/
 venv/
 env/
 
@@ -44,12 +49,18 @@ pnpm-debug.log*
 # Build and cache
 build/
 dist/
+*.egg-info/
 .cache/
 .tmp/
 tmp/
 logs/
 *.log
 *.tmp
+
+# Release artifacts
+releases/
+*.tar.gz
+*.zip
 
 # OS and editors
 .DS_Store

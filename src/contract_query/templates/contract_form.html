@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+{% block title %}新增合同 - 合同查询系统{% endblock %}
+{% block content %}
+<h1>新增合同</h1>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<form class="contract-form" action="{{ request.url_for('create_contract') }}" method="POST" enctype="multipart/form-data">
+  <fieldset>
+    <legend>基本信息</legend>
+    <div class="form-row">
+      <label class="form-label">序号</label>
+      <input type="number" name="serial_no" class="form-input form-input-sm" value="{{ values.serial_no or '' }}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">合同编号</label>
+      <input type="text" name="contract_no" class="form-input" value="{{ values.contract_no }}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">合同名称</label>
+      <input type="text" name="contract_name" class="form-input" value="{{ values.contract_name }}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">项目编号</label>
+      <input type="text" name="project_no" class="form-input" value="{{ values.project_no }}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">项目名称</label>
+      <input type="text" name="project_name" class="form-input" value="{{ values.project_name }}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">采购人（甲方）</label>
+      <input type="text" name="purchaser" class="form-input" value="{{ values.purchaser }}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">供应商（乙方）</label>
+      <input type="text" name="supplier" class="form-input" value="{{ values.supplier }}">
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>标的与金额</legend>
+    <div class="form-row">
+      <label class="form-label">主要标的名称</label>
+      <input type="text" name="item_name" class="form-input" value="{{ values.item_name }}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">规格型号</label>
+      <input type="text" name="spec_or_service" class="form-input" value="{{ values.spec_or_service }}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">数量</label>
+      <input type="text" name="item_quantity" class="form-input form-input-sm" value="{{ values.item_quantity }}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">单价（万元）</label>
+      <input type="number" name="unit_price_wan" class="form-input form-input-sm" value="{{ values.unit_price_wan or '' }}" step="0.01">
+    </div>
+    <div class="form-row">
+      <label class="form-label">合同金额（万元）</label>
+      <input type="number" name="amount_wan" class="form-input form-input-sm" value="{{ values.amount_wan or '' }}" step="0.01">
+    </div>
+    <div class="form-row">
+      <label class="form-label">采购方式</label>
+      <input type="text" name="purchase_method" class="form-input" value="{{ values.purchase_method }}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">签订日期</label>
+      <input type="date" name="signed_date" class="form-input form-input-sm" value="{{ values.signed_date }}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">网址</label>
+      <input type="url" name="source_url" class="form-input" value="{{ values.source_url }}">
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>备注与文件</legend>
+    <div class="form-row">
+      <label class="form-label">备注</label>
+      <textarea name="notes" class="form-textarea" rows="3">{{ values.notes }}</textarea>
+    </div>
+    <div class="form-row">
+      <label class="form-label">上传 PDF</label>
+      <input type="file" name="pdf" accept=".pdf" class="form-file">
+    </div>
+    <div class="form-row">
+      <label class="form-label">或登记已有 PDF 相对路径</label>
+      <input type="text" name="existing_pdf_path" class="form-input" placeholder="合同文件/xxx.pdf" value="{{ values.existing_pdf_path or '' }}">
+    </div>
+  </fieldset>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">保存合同</button>
+    <a href="{{ request.url_for('home') }}" class="btn">取消</a>
+  </div>
+</form>
+{% endblock %}

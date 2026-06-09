@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=59", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "contract-info-query-system"
+version = "0.1.0"
+description = "Contract information query system"
+requires-python = ">=3.9"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "python-dotenv",
+  "openpyxl",
+  "jinja2",
+  "python-multipart",
+  "pypdf",
+]
+
+[project.scripts]
+contract-query = "contract_query.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

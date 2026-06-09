@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+{% block title %}合同详情 - {{ contract.contract_name }}{% endblock %}
+{% block content %}
+<nav class="breadcrumb">
+  <a href="{{ request.url_for('home') }}">首页</a> &gt; <a href="{{ request.url_for('contracts') }}">合同列表</a> &gt; {{ contract.contract_name }}
+</nav>
+
+<h1>{{ contract.contract_name }}</h1>
+
+<div class="detail-grid">
+  <div class="detail-section">
+    <h3>基本信息</h3>
+    <table class="detail-table">
+      <tr><td class="label">序号</td><td>{{ contract.serial_no }}</td></tr>
+      <tr><td class="label">合同编号</td><td>{{ contract.contract_no }}</td></tr>
+      <tr><td class="label">合同名称</td><td>{{ contract.contract_name }}</td></tr>
+      <tr><td class="label">项目编号</td><td>{{ contract.project_no }}</td></tr>
+      <tr><td class="label">项目名称</td><td>{{ contract.project_name }}</td></tr>
+      <tr><td class="label">采购人（甲方）</td><td>{{ contract.purchaser }}</td></tr>
+      <tr><td class="label">供应商（乙方）</td><td>{{ contract.supplier }}</td></tr>
+      <tr><td class="label">主要标的名称</td><td>{{ contract.item_name }}</td></tr>
+      <tr><td class="label">规格型号</td><td>{{ contract.spec_or_service }}</td></tr>
+      <tr><td class="label">数量</td><td>{{ contract.item_quantity }}</td></tr>
+      <tr><td class="label">单价（万元）</td><td>{{ contract.unit_price_wan }}</td></tr>
+      <tr><td class="label">合同金额（万元）</td><td>{{ contract.amount_wan }}</td></tr>
+      <tr><td class="label">采购方式</td><td>{{ contract.purchase_method }}</td></tr>
+      <tr><td class="label">签订日期</td><td>{{ contract.signed_date }}</td></tr>
+    </table>
+  </div>
+
+  <div class="detail-section">
+    <h3>文件信息</h3>
+    {% if contract.files and contract.files|length > 0 %}
+      {% for file in contract.files %}
+      <div class="file-card">
+        <p><strong>{{ file.original_filename }}</strong></p>
+        <table class="detail-table">
+          <tr><td class="label">大小</td><td>{{ (file.size_bytes / 1024)|round(1) }} KB</td></tr>
+          <tr><td class="label">页数</td><td>{{ file.page_count or "未知" }}</td></tr>
+          <tr><td class="label">文本状态</td><td>{{ file.text_status }}</td></tr>
+          <tr><td class="label">匹配方式</td><td>{{ file.match_method }}</td></tr>
+        </table>
+        <div class="file-actions">
+          <a href="{{ request.url_for('view_file', file_id=file.id) }}" class="btn btn-sm" target="_blank">查看 PDF</a>
+          <a href="{{ request.url_for('download_file', file_id=file.id) }}" class="btn btn-sm">下载 PDF</a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="empty-state">无关联文件</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="detail-section">
+  <h3>其它</h3>
+  <table class="detail-table">
+    <tr><td class="label">网址</td><td><a href="{{ contract.source_url }}" target="_blank" rel="noopener">{{ contract.source_url }}</a></td></tr>
+    <tr><td class="label">Excel 合同文件</td><td>{{ contract.excel_contract_file }}</td></tr>
+    <tr><td class="label">备注</td><td>{{ contract.notes or "无" }}</td></tr>
+    <tr><td class="label">创建时间</td><td>{{ contract.created_at }}</td></tr>
+    <tr><td class="label">更新时间</td><td>{{ contract.updated_at }}</td></tr>
+  </table>
+</div>
+{% endblock %}

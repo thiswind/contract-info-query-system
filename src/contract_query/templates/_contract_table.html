@@ -1,0 +1,42 @@
+{% if results and results|length > 0 %}
+<div class="table-wrapper">
+  <table class="contract-table">
+    <thead>
+      <tr>
+        <th>序号</th>
+        <th>合同名称</th>
+        <th>合同编号</th>
+        <th>项目名称</th>
+        <th>供应商</th>
+        <th>金额（万元）</th>
+        <th>签订日期</th>
+        <th>文件</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in results %}
+      <tr>
+        <td>{{ r.serial_no or "" }}</td>
+        <td>{{ r.contract_name }}</td>
+        <td>{{ r.contract_no }}</td>
+        <td>{{ r.project_name }}</td>
+        <td>{{ r.supplier }}</td>
+        <td class="num">{{ r.amount_wan }}</td>
+        <td>{{ r.signed_date }}</td>
+        <td>
+          {% if r.file_id %}
+          <a href="{{ request.url_for('view_file', file_id=r.file_id) }}" target="_blank" title="查看 PDF">PDF</a>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{{ request.url_for('contract_detail', contract_id=r.id) }}" class="btn btn-sm">详情</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="empty-state">无结果</p>
+{% endif %}

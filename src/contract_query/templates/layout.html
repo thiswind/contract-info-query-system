@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}合同查询系统{% endblock %}</title>
+  <link rel="stylesheet" href="{{ request.url_for('static', path='app.css') }}">
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="container">
+      <a class="nav-brand" href="{{ request.url_for('home') }}">合同查询系统</a>
+      <div class="nav-links">
+        <a href="{{ request.url_for('home') }}">首页</a>
+        <a href="{{ request.url_for('contracts') }}">合同列表</a>
+        <a href="{{ request.url_for('new_contract_form') }}">新增合同</a>
+        <a href="{{ request.url_for('import_page') }}">数据导入</a>
+      </div>
+    </div>
+  </nav>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer">
+    <div class="container">
+      <p>合同信息查询系统 &mdash; 原型版本</p>
+    </div>
+  </footer>
+</body>
+</html>
