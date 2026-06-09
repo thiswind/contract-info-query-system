@@ -1,7 +1,8 @@
 {% extends "layout.html" %}
-{% block title %}数据导入 - 合同查询系统{% endblock %}
+{% block title %}历史数据初始化 - 合同查询系统{% endblock %}
 {% block content %}
-<h1>数据导入</h1>
+<h1>历史数据初始化</h1>
+<p class="alert alert-warning">本页面用于开发阶段或系统上线前，把已有 Excel 台账和 PDF 目录一次性导入系统。日常使用时，请通过“新增合同”逐条填写并上传 PDF；保存后系统会自动更新查询索引，不需要手动执行本页面操作。</p>
 
 <div class="stats-cards">
   <div class="stat-card">
@@ -10,7 +11,7 @@
   </div>
   <div class="stat-card">
     <span class="stat-value">{{ inventory.indexed_candidates }}</span>
-    <span class="stat-label">可索引候选文件</span>
+    <span class="stat-label">原始目录候选文件数</span>
   </div>
 </div>
 
@@ -43,7 +44,7 @@
   </form>
   <form action="{{ request.url_for('import_excel_endpoint') }}" method="POST" style="display:inline">
     <input type="hidden" name="dry_run" value="false">
-    <button type="submit" class="btn btn-primary">执行导入</button>
+    <button type="submit" class="btn btn-primary" onclick="return confirm('执行历史数据导入可能覆盖当前数据库基准，确认继续？')">执行历史数据导入</button>
   </form>
   <a href="{{ request.url_for('check_files_endpoint') }}" class="btn">检查文件状态</a>
 </div>

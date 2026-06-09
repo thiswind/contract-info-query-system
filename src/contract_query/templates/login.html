@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block title %}登录 - 合同查询系统{% endblock %}
+{% block content %}
+<div class="login-card">
+  <h1>合同查询系统</h1>
+  <p class="muted">请输入账号和密码后继续访问合同查询功能。</p>
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+  <form action="{{ request.url_for('login') }}" method="POST" class="contract-form">
+    <div class="form-row">
+      <label class="form-label">用户名</label>
+      <input type="text" name="username" class="form-input" value="{{ username }}" autofocus required>
+    </div>
+    <div class="form-row">
+      <label class="form-label">密码</label>
+      <input type="password" name="password" class="form-input" required>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">登录</button>
+    </div>
+  </form>
+  <p class="help-text">管理员忘记密码时，请登录服务器，在项目虚拟环境中执行 <code>contract-query admin reset-password --username admin</code> 生成新的临时密码。</p>
+</div>
+{% endblock %}

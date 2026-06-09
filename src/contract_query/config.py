@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from secrets import token_urlsafe
 
 from dotenv import load_dotenv
 
@@ -14,6 +15,7 @@ class Settings:
     raw_dir: Path
     processed_dir: Path
     db_path: Path
+    secret_path: Path
     host: str
     port: int
     root_path: str
@@ -35,6 +37,7 @@ def load_settings() -> Settings:
     raw_dir = Path(os.getenv("CONTRACT_QUERY_RAW_DIR", data_dir / "raw")).expanduser().resolve()
     processed_dir = Path(os.getenv("CONTRACT_QUERY_PROCESSED_DIR", data_dir / "processed")).expanduser().resolve()
     db_path = Path(os.getenv("CONTRACT_QUERY_DB", processed_dir / "contracts.sqlite3")).expanduser().resolve()
+    secret_path = Path(os.getenv("CONTRACT_QUERY_SECRET_FILE", processed_dir / "session_secret.txt")).expanduser().resolve()
     host = os.getenv("CONTRACT_QUERY_HOST", "127.0.0.1")
     port = int(os.getenv("CONTRACT_QUERY_PORT", "8000"))
     root_path = normalize_root_path(os.getenv("CONTRACT_QUERY_ROOT_PATH", "/contract-query"))
@@ -44,6 +47,7 @@ def load_settings() -> Settings:
         raw_dir=raw_dir,
         processed_dir=processed_dir,
         db_path=db_path,
+        secret_path=secret_path,
         host=host,
         port=port,
         root_path=root_path,
@@ -53,3 +57,16 @@ def load_settings() -> Settings:
 def ensure_runtime_dirs(settings: Settings) -> None:
     settings.raw_dir.mkdir(parents=True, exist_ok=True)
     settings.processed_dir.mkdir(parents=True, exist_ok=True)
+
+
+def load_session_secret(settings: Settings) -> str:
+    env_secret = os.getenv("CONTRACT_QUERY_SESSION_SECRET", "").strip()
+    if env_secret:
+        return env_secret
+    settings.secret_path.parent.mkdir(parents=True, exist_ok=True)
+    if settings.secret_path.exists():
+        return settings.secret_path.read_text(encoding="utf-8").strip()
+    secret = token_urlsafe(48)
+    settings.secret_path.write_text(secret, encoding="utf-8")
+    settings.secret_path.chmod(0o600)
+    return secret

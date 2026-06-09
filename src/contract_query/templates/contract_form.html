@@ -2,6 +2,7 @@
 {% block title %}新增合同 - 合同查询系统{% endblock %}
 {% block content %}
 <h1>新增合同</h1>
+<p class="info-box">填写合同信息并上传 PDF 后，系统会自动保存到查询库，保存成功即可在首页和合同列表中搜索到。</p>
 
 {% if error %}
 <div class="alert alert-error">{{ error }}</div>
@@ -87,7 +88,7 @@
       <input type="file" name="pdf" accept=".pdf" class="form-file">
     </div>
     <div class="form-row">
-      <label class="form-label">或登记已有 PDF 相对路径</label>
+      <label class="form-label">或登记已有 PDF 相对路径（管理员调试项）</label>
       <input type="text" name="existing_pdf_path" class="form-input" placeholder="合同文件/xxx.pdf" value="{{ values.existing_pdf_path or '' }}">
     </div>
   </fieldset>

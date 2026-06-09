@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+{% block title %}权限不足 - 合同查询系统{% endblock %}
+{% block content %}
+<h1>权限不足</h1>
+<div class="alert alert-error">当前账号无权访问该功能。</div>
+<p><a href="{{ request.url_for('home') }}" class="btn">返回首页</a></p>
+{% endblock %}

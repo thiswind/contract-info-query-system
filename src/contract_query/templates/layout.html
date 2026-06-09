@@ -11,10 +11,18 @@
     <div class="container">
       <a class="nav-brand" href="{{ request.url_for('home') }}">合同查询系统</a>
       <div class="nav-links">
+        {% if current_user %}
         <a href="{{ request.url_for('home') }}">首页</a>
         <a href="{{ request.url_for('contracts') }}">合同列表</a>
+        {% if current_user.role == 'admin' %}
         <a href="{{ request.url_for('new_contract_form') }}">新增合同</a>
-        <a href="{{ request.url_for('import_page') }}">数据导入</a>
+        <a href="{{ request.url_for('import_page') }}">历史数据初始化</a>
+        <a href="{{ request.url_for('users_page') }}">用户管理</a>
+        {% endif %}
+        <form action="{{ request.url_for('logout') }}" method="POST" class="nav-form">
+          <button type="submit" class="nav-button">退出登录</button>
+        </form>
+        {% endif %}
       </div>
     </div>
   </nav>
