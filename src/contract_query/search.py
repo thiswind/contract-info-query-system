@@ -15,6 +15,9 @@ SEARCH_COLUMNS = [
     "c.item_name",
     "c.spec_or_service",
     "c.purchase_method",
+    "c.signed_date",
+    "CAST(c.amount_wan AS TEXT)",
+    "printf('%.2f', c.amount_wan)",
     "c.excel_contract_file",
     "c.notes",
     "f.original_filename",
@@ -140,6 +143,21 @@ def list_purchase_methods(db_path: Path) -> list[str]:
     with connect(db_path) as conn:
         rows = conn.execute(
             "SELECT DISTINCT purchase_method FROM contracts WHERE purchase_method != '' ORDER BY purchase_method"
+        ).fetchall()
+    return [row[0] for row in rows]
+
+
+def list_signed_years(db_path: Path) -> list[str]:
+    if not db_path.exists():
+        return []
+    with connect(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT DISTINCT substr(signed_date, 1, 4) AS year
+            FROM contracts
+            WHERE status = 'active' AND signed_date GLOB '[0-9][0-9][0-9][0-9]*'
+            ORDER BY year DESC
+            """
         ).fetchall()
     return [row[0] for row in rows]
 

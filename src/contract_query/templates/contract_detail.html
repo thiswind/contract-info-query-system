@@ -55,7 +55,16 @@
 <div class="detail-section">
   <h3>其它</h3>
   <table class="detail-table">
-    <tr><td class="label">网址</td><td><a href="{{ contract.source_url }}" target="_blank" rel="noopener">{{ contract.source_url }}</a></td></tr>
+    <tr>
+      <td class="label">网址</td>
+      <td>
+        {% if contract.source_url_view.is_link %}
+        <a href="{{ contract.source_url_view.href }}" target="_blank" rel="noopener">{{ contract.source_url_view.label }}</a>
+        {% else %}
+        {{ contract.source_url_view.label }}
+        {% endif %}
+      </td>
+    </tr>
     <tr><td class="label">Excel 合同文件</td><td>{{ contract.excel_contract_file }}</td></tr>
     <tr><td class="label">备注</td><td>{{ contract.notes or "无" }}</td></tr>
     <tr><td class="label">创建时间</td><td>{{ contract.created_at }}</td></tr>

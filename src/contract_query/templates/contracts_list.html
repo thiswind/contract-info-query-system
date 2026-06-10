@@ -5,14 +5,16 @@
 
 <form class="search-form search-form-wide" action="{{ request.url_for('contracts') }}" method="GET">
   <div class="search-row">
-    <input type="text" name="q" class="search-input" placeholder="关键词" value="{{ q }}">
+    <input type="text" name="q" class="search-input" placeholder="关键词：合同编号、名称、项目、供应商、金额、日期" value="{{ q }}">
     <button type="submit" class="btn btn-primary">搜索</button>
   </div>
+  <p class="form-help">选择筛选条件后点击搜索生效。</p>
+  {% if amount_error %}<p class="alert alert-error">{{ amount_error }}</p>{% endif %}
   <div class="filter-row">
     <select name="year" class="filter-select">
       <option value="">所有年份</option>
-      {% for y in range(2026, 2020, -1) %}
-      <option value="{{ y }}" {{ 'selected' if year == y|string else '' }}>{{ y }}</option>
+      {% for y in signed_years %}
+      <option value="{{ y }}" {{ 'selected' if year == y else '' }}>{{ y }}</option>
       {% endfor %}
     </select>
     <input type="text" name="supplier" class="filter-input" placeholder="供应商" value="{{ supplier }}">
@@ -29,5 +31,6 @@
   </div>
 </form>
 
+<p class="result-summary">共找到 {{ results|length }} 条合同</p>
 {% include "_contract_table.html" %}
 {% endblock %}

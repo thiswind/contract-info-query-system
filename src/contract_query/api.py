@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, Depends, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
@@ -23,7 +24,7 @@ from .config import load_settings
 from .excel_importer import check_files, import_excel
 from .file_store import copy_existing_pdf, resolve_raw_path, save_uploaded_pdf
 from .indexer import inventory
-from .search import add_contract, get_contract, get_file_record, list_purchase_methods, search_contracts, stats
+from .search import add_contract, get_contract, get_file_record, list_purchase_methods, list_signed_years, search_contracts, stats
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 
@@ -47,6 +48,30 @@ def cookie_path() -> str:
 
 def login_redirect(request: Request) -> RedirectResponse:
     return RedirectResponse(str(request.url_for("login_page")), status_code=303)
+
+
+def parse_amount_filter(value: Optional[str], label: str) -> tuple[Optional[float], str]:
+    if value is None or value.strip() == "":
+        return None, ""
+    try:
+        return float(value.strip()), ""
+    except ValueError:
+        return None, f"{label}必须填写数字"
+
+
+def source_url_view(value: object) -> dict[str, object]:
+    text = str(value or "").strip()
+    if not text:
+        return {"label": "无可用外部网址", "href": "", "is_link": False}
+    parsed = urlparse(text)
+    host = (parsed.netloc or text.split("/", 1)[0]).lower()
+    if host.endswith("ccgp-yunnan.gov.cn"):
+        return {"label": "无可用外部网址（原始政府采购旧站链接不可用）", "href": "", "is_link": False}
+    if parsed.scheme in {"http", "https"} and parsed.netloc:
+        return {"label": text, "href": text, "is_link": True}
+    if not parsed.scheme and "." in text and not any(char.isspace() for char in text):
+        return {"label": text, "href": f"https://{text}", "is_link": True}
+    return {"label": text, "href": "", "is_link": False}
 
 
 def current_user(request: Request) -> dict[str, object]:
@@ -148,16 +173,24 @@ def contracts(
     year: str = Query(default="", max_length=4),
     supplier: str = Query(default="", max_length=100),
     purchase_method: str = Query(default="", max_length=100),
-    min_amount: Optional[float] = Query(default=None),
-    max_amount: Optional[float] = Query(default=None),
+    min_amount: Optional[str] = Query(default=None, max_length=50),
+    max_amount: Optional[str] = Query(default=None, max_length=50),
     limit: int = Query(default=100, ge=1, le=500),
     format: str = Query(default="html"),
     user: dict[str, object] = Depends(current_user),
 ):
     settings = load_settings()
-    results = search_contracts(settings.db_path, q, limit, year, supplier, purchase_method, min_amount, max_amount)
-    if format == "json":
-        return {"query": q, "count": len(results), "results": results}
+    parsed_min_amount, min_amount_error = parse_amount_filter(min_amount, "最低金额")
+    parsed_max_amount, max_amount_error = parse_amount_filter(max_amount, "最高金额")
+    amount_error = min_amount_error or max_amount_error
+    if amount_error:
+        results = []
+        if format == "json":
+            return {"query": q, "count": 0, "error": amount_error, "results": []}
+    else:
+        results = search_contracts(settings.db_path, q, limit, year, supplier, purchase_method, parsed_min_amount, parsed_max_amount)
+        if format == "json":
+            return {"query": q, "count": len(results), "results": results}
     return render_template(
         request,
         "contracts_list.html",
@@ -167,10 +200,13 @@ def contracts(
             "year": year,
             "supplier": supplier,
             "purchase_method": purchase_method,
-            "min_amount": min_amount,
-            "max_amount": max_amount,
+            "min_amount": min_amount or "",
+            "max_amount": max_amount or "",
+            "amount_error": amount_error,
             "purchase_methods": list_purchase_methods(settings.db_path),
+            "signed_years": list_signed_years(settings.db_path),
         },
+        status_code=400 if amount_error else 200,
     )
 
 
@@ -239,6 +275,7 @@ def contract_detail(request: Request, contract_id: int, format: str = Query(defa
     result = get_contract(settings.db_path, contract_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Contract not found")
+    result["source_url_view"] = source_url_view(result.get("source_url"))
     if format == "json":
         return result
     return render_template(request, "contract_detail.html", {"contract": result})
@@ -261,13 +298,19 @@ def import_page(request: Request, user: dict[str, object] = Depends(current_admi
 
 
 @business_app.post("/import/excel")
-def import_excel_endpoint(request: Request, dry_run: bool = Form(default=False), user: dict[str, object] = Depends(current_admin)):
+def import_excel_endpoint(
+    request: Request,
+    dry_run: bool = Form(default=False),
+    allow_warnings: bool = Form(default=False),
+    user: dict[str, object] = Depends(current_admin),
+):
     settings = load_settings()
-    report = import_excel(settings, dry_run=dry_run).to_dict()
+    report = import_excel(settings, dry_run=dry_run, allow_warnings=allow_warnings).to_dict()
     return render_template(
         request,
         "import.html",
         {"settings": settings, "inventory": inventory(settings).to_dict(), "report": report},
+        status_code=409 if report["blocked"] else 200,
     )
 
 

@@ -17,6 +17,7 @@
 
 {% if report %}
 <h2>导入报告</h2>
+{% if report.blocked %}<p class="alert alert-error">导入已阻断：报告中存在需要人工复核的风险项。确认数据无误后，可使用下方人工确认按钮执行。</p>{% endif %}
 <table class="detail-table">
   <tr><td class="label">Dry Run</td><td>{{ report.dry_run }}</td></tr>
   <tr><td class="label">总行数</td><td>{{ report.total_rows }}</td></tr>
@@ -27,11 +28,27 @@
   <tr><td class="label">未匹配合同行</td><td>{{ report.unmatched_rows }}</td></tr>
   <tr><td class="label">未匹配 PDF</td><td>{{ report.unmatched_files }}</td></tr>
 </table>
+{% if report.requires_review %}
+<h3>需要人工复核</h3>
+<ul>
+  {% for item in report.requires_review %}
+  <li>{{ item }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
 {% if report.errors %}
-<h3>警告</h3>
+<h3>错误</h3>
 <ul>
   {% for err in report.errors %}
   <li>{{ err }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% if report.warnings %}
+<h3>警告</h3>
+<ul>
+  {% for warning in report.warnings %}
+  <li>{{ warning }}</li>
   {% endfor %}
 </ul>
 {% endif %}
@@ -45,6 +62,11 @@
   <form action="{{ request.url_for('import_excel_endpoint') }}" method="POST" style="display:inline">
     <input type="hidden" name="dry_run" value="false">
     <button type="submit" class="btn btn-primary" onclick="return confirm('执行历史数据导入可能覆盖当前数据库基准，确认继续？')">执行历史数据导入</button>
+  </form>
+  <form action="{{ request.url_for('import_excel_endpoint') }}" method="POST" style="display:inline">
+    <input type="hidden" name="dry_run" value="false">
+    <input type="hidden" name="allow_warnings" value="true">
+    <button type="submit" class="btn" onclick="return confirm('仅在已人工复核重复编号和 PDF 匹配风险后使用，确认继续？')">已复核，允许风险导入</button>
   </form>
   <a href="{{ request.url_for('check_files_endpoint') }}" class="btn">检查文件状态</a>
 </div>

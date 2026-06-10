@@ -63,7 +63,11 @@ class ImportReport:
     unmatched_files: int
     code_matched_files: int
     serial_prefix_matched_files: int
+    warnings: list[str]
     errors: list[str]
+    requires_review: list[str]
+    blocked: bool
+    allow_warnings: bool
     unmatched_row_serials: list[int]
     unmatched_file_names: list[str]
     db_path: str
@@ -201,7 +205,7 @@ def normalize_contract(row: dict[str, object]) -> dict[str, object]:
     }
 
 
-def import_excel(settings: Settings, dry_run: bool = False) -> ImportReport:
+def import_excel(settings: Settings, dry_run: bool = False, allow_warnings: bool = False) -> ImportReport:
     ensure_runtime_dirs(settings)
     initialize_database(settings.db_path)
     excel_path = settings.raw_dir / EXCEL_FILENAME
@@ -211,7 +215,9 @@ def import_excel(settings: Settings, dry_run: bool = False) -> ImportReport:
     pdfs_by_position = {index + 1: record for index, record in enumerate(pdfs)}
     matched_pdf_paths: set[Path] = set()
     unmatched_row_serials: list[int] = []
+    warnings: list[str] = []
     errors: list[str] = []
+    requires_review: list[str] = []
     prepared: list[tuple[dict[str, object], PdfRecord | None, str | None]] = []
     code_matched = 0
     serial_prefix_matched = 0
@@ -220,10 +226,10 @@ def import_excel(settings: Settings, dry_run: bool = False) -> ImportReport:
     contract_no_counts = Counter(normalize_contract(row)["contract_no"] for row in rows if normalize_contract(row)["contract_no"])
     for serial_no, count in sorted(serial_counts.items()):
         if serial_no is not None and count > 1:
-            errors.append(f"serial {serial_no}: duplicate Excel serial appears {count} times")
+            requires_review.append(f"serial {serial_no}: duplicate Excel serial appears {count} times")
     for contract_no, count in sorted(contract_no_counts.items()):
         if count > 1:
-            errors.append(f"contract_no {contract_no}: duplicate Excel contract number appears {count} times")
+            requires_review.append(f"contract_no {contract_no}: duplicate Excel contract number appears {count} times")
 
     for row_index, row in enumerate(rows, start=1):
         contract = normalize_contract(row)
@@ -231,32 +237,13 @@ def import_excel(settings: Settings, dry_run: bool = False) -> ImportReport:
         pdf = pdfs_by_serial.get(serial_no)
         match_method = None
         if pdf is not None and pdf.path in matched_pdf_paths:
-            fallback_pdf = next(
-                (
-                    record
-                    for record in pdfs
-                    if record.path not in matched_pdf_paths and serial_counts.get(record.serial_no, 0) == 0
-                ),
-                None,
-            )
-            if fallback_pdf is not None:
-                errors.append(
-                    f"serial {serial_no}: duplicate Excel serial used missing-serial PDF {fallback_pdf.path.name}"
-                )
-                pdf = fallback_pdf
-            else:
-                errors.append(f"serial {serial_no}: duplicate Excel serial would reuse PDF {pdf.path.name}")
-                pdf = None
+            requires_review.append(f"serial {serial_no}: duplicate Excel serial would reuse PDF {pdf.path.name}")
+            pdf = None
         if pdf is None:
-            fallback_pdf = pdfs_by_position.get(row_index)
-            if fallback_pdf is not None and fallback_pdf.path not in matched_pdf_paths:
-                errors.append(f"row {row_index}: serial {serial_no} used row-position PDF {fallback_pdf.path.name}")
-                pdf = fallback_pdf
-            else:
-                if serial_no is not None:
-                    unmatched_row_serials.append(serial_no)
-                prepared.append((contract, None, None))
-                continue
+            if serial_no is not None:
+                unmatched_row_serials.append(serial_no)
+            prepared.append((contract, None, None))
+            continue
         excel_codes = {code.upper() for code in extract_codes(contract["excel_contract_file"])}
         pdf_codes = {code.upper() for code in pdf.codes}
         if excel_codes and pdf_codes:
@@ -264,18 +251,20 @@ def import_excel(settings: Settings, dry_run: bool = False) -> ImportReport:
                 match_method = "code"
                 code_matched += 1
             else:
-                errors.append(f"serial {serial_no}: Excel/PDF code mismatch")
+                requires_review.append(f"serial {serial_no}: Excel/PDF code mismatch")
                 match_method = "serial_prefix"
                 serial_prefix_matched += 1
         else:
+            warnings.append(f"serial {serial_no}: matched PDF by serial prefix without contract code evidence")
             match_method = "serial_prefix"
             serial_prefix_matched += 1
         matched_pdf_paths.add(pdf.path)
         prepared.append((contract, pdf, match_method))
 
     unmatched_file_names = [record.path.name for record in pdfs if record.path not in matched_pdf_paths]
+    blocked = bool(not dry_run and requires_review and not allow_warnings)
 
-    if not dry_run:
+    if not dry_run and not blocked:
         with connect(settings.db_path) as conn:
             conn.execute("DELETE FROM contract_files")
             conn.execute("DELETE FROM contracts")
@@ -345,8 +334,8 @@ def import_excel(settings: Settings, dry_run: bool = False) -> ImportReport:
                     len(unmatched_file_names),
                     code_matched,
                     serial_prefix_matched,
-                    "success" if not errors else "success_with_warnings",
-                    "; ".join(errors[:10]),
+                    "success" if not (warnings or requires_review or errors) else "success_with_warnings",
+                    "; ".join((errors + requires_review + warnings)[:10]),
                 ),
             )
 
@@ -360,7 +349,11 @@ def import_excel(settings: Settings, dry_run: bool = False) -> ImportReport:
         unmatched_files=len(unmatched_file_names),
         code_matched_files=code_matched,
         serial_prefix_matched_files=serial_prefix_matched,
+        warnings=warnings,
         errors=errors,
+        requires_review=requires_review,
+        blocked=blocked,
+        allow_warnings=allow_warnings,
         unmatched_row_serials=unmatched_row_serials,
         unmatched_file_names=unmatched_file_names,
         db_path=str(settings.db_path),

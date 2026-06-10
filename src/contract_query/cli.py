@@ -26,8 +26,9 @@ def run_inventory(args: argparse.Namespace) -> int:
 
 def run_import_excel(args: argparse.Namespace) -> int:
     settings = load_settings()
-    print_json(import_excel(settings, dry_run=args.dry_run).to_dict())
-    return 0
+    report = import_excel(settings, dry_run=args.dry_run, allow_warnings=args.allow_warnings)
+    print_json(report.to_dict())
+    return 2 if report.blocked else 0
 
 
 def run_build_index(args: argparse.Namespace) -> int:
@@ -96,6 +97,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     import_parser = subparsers.add_parser("import-excel", help="Import Excel contracts and map PDF files")
     import_parser.add_argument("--dry-run", action="store_true", help="Scan and report without writing database")
+    import_parser.add_argument("--allow-warnings", action="store_true", help="Allow import when the report requires manual review")
     import_parser.set_defaults(func=run_import_excel)
 
     build_index_parser = subparsers.add_parser("build-index", help="Initialize the SQLite contract database")
