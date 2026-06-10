@@ -34,6 +34,8 @@
 - openpyxl
 - pypdf
 - itsdangerous
+- python-dotenv
+- python-multipart
 
 ## 安装
 
@@ -174,14 +176,20 @@ contract-query admin reset-password --username 用户名 # 重置用户密码
 默认业务入口挂载在 `CONTRACT_QUERY_ROOT_PATH` 下：
 
 ```text
-/contract-query/                 首页
-/contract-query/login            登录
-/contract-query/contracts        合同列表与筛选
-/contract-query/contracts/new    新增合同，管理员可用
-/contract-query/import           历史数据初始化，管理员可用
-/contract-query/users            用户管理，管理员可用
-/contract-query/health           业务路径健康检查
-/health                          根路径健康检查
+/contract-query/                          首页
+/contract-query/login                     登录
+/contract-query/contracts                 合同列表与筛选
+/contract-query/contracts/new             新增合同，管理员可用
+/contract-query/contracts/{contract_id}   合同详情，支持 ?format=json
+/contract-query/files/{file_id}/view      在线查看 PDF
+/contract-query/files/{file_id}/download  下载 PDF
+/contract-query/import                    历史数据初始化，管理员可用
+/contract-query/users                     用户管理，管理员可用
+/contract-query/stats                     统计接口
+/contract-query/inventory                 原始数据盘点接口，管理员可用
+/contract-query/check-files               文件引用检查接口，管理员可用
+/contract-query/health                    业务路径健康检查
+/health                                   根路径健康检查
 ```
 
 ## 内网部署建议
