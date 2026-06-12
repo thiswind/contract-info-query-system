@@ -16,6 +16,7 @@ setup(
         "openpyxl",
         "jinja2",
         "python-multipart",
+        "itsdangerous",
         "pypdf",
     ],
     entry_points={

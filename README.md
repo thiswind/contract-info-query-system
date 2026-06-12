@@ -177,14 +177,18 @@ contract-query admin reset-password --username 用户名 # 重置用户密码
 
 ```text
 /contract-query/                          首页
-/contract-query/login                     登录
-/contract-query/contracts                 合同列表与筛选
+/contract-query/login                     登录，POST 提交登录
+/contract-query/logout                    POST 退出登录
+/contract-query/contracts                 合同列表与筛选，POST 新增合同
 /contract-query/contracts/new             新增合同，管理员可用
 /contract-query/contracts/{contract_id}   合同详情，支持 ?format=json
 /contract-query/files/{file_id}/view      在线查看 PDF
 /contract-query/files/{file_id}/download  下载 PDF
 /contract-query/import                    历史数据初始化，管理员可用
-/contract-query/users                     用户管理，管理员可用
+/contract-query/import/excel              POST 执行历史数据导入，管理员可用
+/contract-query/users                     用户管理，POST 新增查询账号，管理员可用
+/contract-query/users/{username}/reset-password POST 重置查询账号密码，管理员可用
+/contract-query/users/{username}/toggle   POST 启用或禁用查询账号，管理员可用
 /contract-query/stats                     统计接口
 /contract-query/inventory                 原始数据盘点接口，管理员可用
 /contract-query/check-files               文件引用检查接口，管理员可用

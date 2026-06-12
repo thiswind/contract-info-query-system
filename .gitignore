@@ -47,6 +47,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Build and cache
+test-results/
 build/
 dist/
 *.egg-info/
